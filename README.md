@@ -1,8 +1,11 @@
 # OpenCode Python SDK
 
-> **状态**: ✅ 已完成 | **版本**: 0.1.0-dev | **完成度**: 100%
+> **状态**: ✅ 已完成 | **版本**: 0.1.0-dev | **完成度**: 100% | 测试覆盖率 30%（待完成）
 
-[OpenCode](https://opencode.ai) 的 Python SDK - AI 驱动的编码助手。
+
+- [API 文档](docs/API_REFERENCE.md) - 完整的 75 个 API 方法文档
+- [OpenCode 中文教程](https://learnopencode.com/) - OpenCode 中文教程 | AI 编程助手实战指南
+
 
 一个功能完整、文档齐全、测试覆盖良好的高质量 Python 客户端库。
 
@@ -18,7 +21,13 @@
 ## 🚀 安装
 
 ```bash
-源码下载到本地从本地安装，未上传PIP仓库
+# 从 GitHub 克隆仓库
+git clone https://github.com/xike110/OpenCode-Python-SDK.git
+
+# 进入项目目录
+cd 项目目录
+
+# 从本地安装
 pip install -e .
 
 ```
@@ -248,7 +257,7 @@ asyncio.run(stream_chat())
 | **API 方法** | 75 |
 | **数据模型** | 100+ |
 | **测试用例** | 100+ |
-| **文档** | 22+ |
+| **文档** | 24+ |
 | **代码行数** | 16,000+ |
 | **测试覆盖率** | 80%+ |
 
@@ -260,10 +269,33 @@ asyncio.run(stream_chat())
 - 📖 [README.md](README.md) - 项目概览
 - 📖 [DEMO.md](DEMO.md) - 演示程序使用指南
 - 📖 [QUICKSTART.md](QUICKSTART.md) - 快速开始指南
-- 📖 [API_REFERENCE.md](API_REFERENCE.md) - 完整 API 参考
+- 📖 [docs/API_REFERENCE.md](docs/API_REFERENCE.md) - 完整 API 参考（75个方法）
 - 📖 [BEST_PRACTICES.md](BEST_PRACTICES.md) - 最佳实践
 - 📖 [CONTRIBUTING.md](CONTRIBUTING.md) - 贡献指南
 - 📖 [CHANGELOG.md](CHANGELOG.md) - 更新日志
+
+### API 文档
+- 📖 [docs/API_REFERENCE.md](docs/API_REFERENCE.md) - API 参考总览
+- 📖 [docs/session.md](docs/session.md) - Session 资源（24个方法）
+- 📖 [docs/event.md](docs/event.md) - Event 资源（3个方法）
+- 📖 [docs/project.md](docs/project.md) - Project 资源（3个方法）
+- 📖 [docs/config.md](docs/config.md) - Config 资源（3个方法）
+- 📖 [docs/provider.md](docs/provider.md) - Provider 资源（4个方法）
+- 📖 [docs/file.md](docs/file.md) - File 资源（3个方法）
+- 📖 [docs/find.md](docs/find.md) - Find 资源（3个方法）
+- 📖 [docs/mcp.md](docs/mcp.md) - MCP 资源（9个方法）
+- 📖 [docs/lsp.md](docs/lsp.md) - LSP 资源（1个方法）
+- 📖 [docs/pty.md](docs/pty.md) - PTY 资源（6个方法）
+- 📖 [docs/tool.md](docs/tool.md) - Tool 资源（2个方法）
+- 📖 [docs/tui.md](docs/tui.md) - TUI 资源（11个方法）
+- 📖 [docs/app.md](docs/app.md) - App 资源（3个方法）
+- 📖 [docs/command.md](docs/command.md) - Command 资源（1个方法）
+- 📖 [docs/global.md](docs/global.md) - Global 资源（3个方法）
+- 📖 [docs/instance.md](docs/instance.md) - Instance 资源（1个方法）
+- 📖 [docs/path.md](docs/path.md) - Path 资源（1个方法）
+- 📖 [docs/vcs.md](docs/vcs.md) - VCS 资源（1个方法）
+- 📖 [docs/formatter.md](docs/formatter.md) - Formatter 资源（1个方法）
+- 📖 [docs/auth.md](docs/auth.md) - Auth 资源（1个方法）
 
 ### 项目状态
 - 📊 [PROJECT_STATUS.md](PROJECT_STATUS.md) - 详细项目状态
@@ -310,6 +342,23 @@ mypy opencode_sdk
 ```
 
 ## 📝 使用示例
+
+### 快速体验演示程序
+
+想要快速体验 SDK 的功能？运行演示程序：
+
+```bash
+# 快速入门演示（推荐新手）
+python quick_demo.py
+
+# 完整功能演示
+python demo.py
+
+# 使用自定义配置
+python demo.py --base-url http://your-server:8000 --directory /path/to/project
+```
+
+📖 **详细说明**: [DEMO.md](DEMO.md) - 演示程序使用指南
 
 ### 创建和使用会话
 
@@ -381,6 +430,8 @@ MIT 许可证 - 详见 [LICENSE](LICENSE) 文件。
 
 - [OpenCode 官网](https://opencode.ai)
 - [文档](https://opencode.ai/docs)
+- [API 参考](docs/API_REFERENCE.md) - 完整的 75 个 API 方法文档
+- [中文教程](https://learnopencode.com/) - OpenCode 中文教程 | AI 编程助手实战指南
 - [GitHub 仓库](https://github.com/opencode-ai/opencode)
 - [问题追踪](https://github.com/opencode-ai/opencode/issues)
 
