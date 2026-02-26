@@ -75,19 +75,61 @@ async for event in client.events.subscribe_global():
 **参数:**
 - `session_id` (str) - 会话 ID
 - `parts` (Optional[list]) - 消息部分列表（如果提供，则发送消息）
-- `**kwargs` - 其他参数（如 model, agent 等）
+- `agent` (Optional[str]) - 代理名称（如 "build"）
+- `model` (Optional[Dict[str, str]]) - 模型配置，包含：
+  - `modelID` (str) - 模型 ID（如 "gpt-5-nano", "claude-3-5-sonnet-20241022"）
+  - `providerID` (str) - 提供商 ID（如 "opencode", "anthropic", "openai"）
+- `variant` (Optional[str]) - 变体（如 "low", "medium", "high"）
+- `**kwargs` - 其他参数
 
 **返回值:**
 - `AsyncIterator[Event]` - 事件对象迭代器
 
 **示例:**
 ```python
-# 发送消息并接收流式响应
+# 基本用法 - 发送消息并接收流式响应
 async for event in client.events.subscribe_session(
     session_id="session_123",
-    parts=[{"type": "text", "text": "你好"}],
-    model={"modelID": "minimax-m2.1-free", "providerID": "opencode"},
-    agent="build"
+    parts=[{"type": "text", "text": "你好"}]
+):
+    if event.type == "text":
+        print(event.text, end="", flush=True)
+
+# 使用指定模型和代理
+async for event in client.events.subscribe_session(
+    session_id="session_123",
+    parts=[{"type": "text", "text": "当前时间"}],
+    agent="build",
+    model={
+        "modelID": "gpt-5-nano",
+        "providerID": "opencode"
+    },
+    variant="low"
+):
+    if event.type == "text":
+        print(event.text, end="", flush=True)
+
+# 使用 Claude 模型
+async for event in client.events.subscribe_session(
+    session_id="session_123",
+    parts=[{"type": "text", "text": "帮我写一个 Python 函数"}],
+    model={
+        "modelID": "claude-3-5-sonnet-20241022",
+        "providerID": "anthropic"
+    }
+):
+    if event.type == "text":
+        print(event.text, end="", flush=True)
+
+# 使用 GPT 模型
+async for event in client.events.subscribe_session(
+    session_id="session_123",
+    parts=[{"type": "text", "text": "分析这段代码"}],
+    model={
+        "modelID": "gpt-4-turbo",
+        "providerID": "openai"
+    },
+    variant="high"
 ):
     if event.type == "text":
         print(event.text, end="", flush=True)
