@@ -25,11 +25,10 @@
 git clone https://github.com/xike110/OpenCode-Python-SDK.git
 
 # 进入项目目录
-cd 项目目录
+cd OpenCode-Python-SDK
 
 # 从本地安装
 pip install -e .
-
 ```
 
 ## 🎯 新手启动步骤
@@ -69,12 +68,12 @@ client = OpencodeClient(
 
 # 创建一个新会话
 print("📝 创建会话...")
-session = client.session.create(title="我的第一个任务")
+session = client.sessions.create(title="我的第一个任务")
 print(f"✅ 会话已创建，ID: {session.id}")
 
 # 发送一条消息
 print("\n💬 发送消息...")
-response = client.session.prompt(
+response = client.sessions.prompt(
     session_id=session.id,
     parts=[{
         "type": "text",
@@ -85,7 +84,7 @@ print(f"✅ 收到响应: {response}")
 
 # 列出所有会话
 print("\n📋 列出所有会话...")
-sessions = client.session.list()
+sessions = client.sessions.list()
 print(f"✅ 共有 {len(sessions)} 个会话")
 for s in sessions:
     print(f"  - {s.title} (ID: {s.id})")
@@ -226,8 +225,6 @@ async def stream_chat():
 asyncio.run(stream_chat())
 ```
 
-📖 **详细教程**: [流式消息使用指南](docs/STREAMING_GUIDE.md)
-
 ## 🔧 功能特性
 
 - ✅ **会话管理**: 创建、列表、更新、删除会话（24 个方法）
@@ -249,10 +246,10 @@ asyncio.run(stream_chat())
 | **资源类** | 14 |
 | **API 方法** | 75 |
 | **数据模型** | 100+ |
-| **测试用例** | 100+ |
+| **测试用例** | 30+ |
 | **文档** | 24+ |
 | **代码行数** | 16,000+ |
-| **测试覆盖率** | 80%+ |
+| **测试覆盖率** | 30% |
 
 ## 📚 文档
 
@@ -261,11 +258,7 @@ asyncio.run(stream_chat())
 ### 核心文档
 - 📖 [README.md](README.md) - 项目概览
 - 📖 [DEMO.md](DEMO.md) - 演示程序使用指南
-- 📖 [QUICKSTART.md](QUICKSTART.md) - 快速开始指南
 - 📖 [docs/API_REFERENCE.md](docs/API_REFERENCE.md) - 完整 API 参考（75个方法）
-- 📖 [BEST_PRACTICES.md](BEST_PRACTICES.md) - 最佳实践
-- 📖 [CONTRIBUTING.md](CONTRIBUTING.md) - 贡献指南
-- 📖 [CHANGELOG.md](CHANGELOG.md) - 更新日志
 
 ### API 文档
 - 📖 [docs/API_REFERENCE.md](docs/API_REFERENCE.md) - API 参考总览
@@ -290,12 +283,6 @@ asyncio.run(stream_chat())
 - 📖 [docs/formatter.md](docs/formatter.md) - Formatter 资源（1个方法）
 - 📖 [docs/auth.md](docs/auth.md) - Auth 资源（1个方法）
 
-### 项目状态
-- 📊 [PROJECT_STATUS.md](PROJECT_STATUS.md) - 详细项目状态
-- 📊 [DONE.md](DONE.md) - 完成声明
-- 📊 [ACCEPTANCE_REPORT.md](ACCEPTANCE_REPORT.md) - 验收报告
-- 📊 [DELIVERY_CHECKLIST.md](DELIVERY_CHECKLIST.md) - 交付清单
-
 ### 核心资源
 
 - **Session（会话）**: 管理 AI 编码会话（24 个方法）
@@ -317,8 +304,8 @@ asyncio.run(stream_chat())
 
 ```bash
 # 克隆仓库
-git clone https://github.com/opencode-ai/opencode.git
-cd opencode/ai_cli/python_sdk
+git clone https://github.com/xike110/OpenCode-Python-SDK.git
+cd OpenCode-Python-SDK
 
 # 安装依赖
 pip install -r requirements.txt
@@ -361,23 +348,23 @@ from opencode_sdk import OpencodeClient
 client = OpencodeClient(base_url="http://localhost:8000")
 
 # 创建会话
-session = client.session.create(title="重构代码")
+session = client.sessions.create(title="重构代码")
 
 # 发送消息
-response = client.session.prompt(
+response = client.sessions.prompt(
     session_id=session.id,
     parts=[{"type": "text", "text": "重构这个函数"}]
 )
 
 # 获取会话消息
-messages = client.session.messages(session_id=session.id)
+messages = client.sessions.messages(session_id=session.id)
 ```
 
 ### 订阅事件
 
 ```python
 # 订阅所有事件
-for event in client.event.subscribe():
+for event in client.events.subscribe():
     print(f"事件: {event.type}")
     
     if event.type == "message.part.updated":
@@ -390,10 +377,10 @@ for event in client.event.subscribe():
 
 ```python
 # 列出文件
-files = client.file.list(path="src")
+files = client.files.list(path="src")
 
 # 读取文件
-content = client.file.read(path="src/main.py")
+content = client.files.read(path="src/main.py")
 
 # 搜索文本
 results = client.find.text(query="function")
@@ -403,7 +390,7 @@ results = client.find.text(query="function")
 
 ```python
 # 列出提供商
-providers = client.provider.list()
+providers = client.providers.list()
 
 # 获取配置
 config = client.config.get()
@@ -425,8 +412,8 @@ MIT 许可证 - 详见 [LICENSE](LICENSE) 文件。
 - [文档](https://opencode.ai/docs)
 - [API 参考](docs/API_REFERENCE.md) - 完整的 75 个 API 方法文档
 - [中文教程](https://learnopencode.com/) - OpenCode 中文教程 | AI 编程助手实战指南
-- [GitHub 仓库](https://github.com/opencode-ai/opencode)
-- [问题追踪](https://github.com/opencode-ai/opencode/issues)
+- [GitHub 仓库](https://github.com/xike110/OpenCode-Python-SDK)
+- [问题追踪](https://github.com/xike110/OpenCode-Python-SDK/issues)
 
 ## 💬 支持
 
