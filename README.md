@@ -12,8 +12,7 @@
 - ✅ **类型安全** - 100% 类型提示覆盖
 - ✅ **中文注释** - 100% 中文注释
 - ✅ **异步支持** - 完整的异步 API
-- ✅ **测试完善** - 100+ 个测试用例，80%+ 覆盖率
-- ✅ **文档齐全** - 22+ 个详细文档
+- ✅ **测试完善** - 测试过30个用例，30% 测试覆盖率(其他暂未测试，拿到手自己测试)
 - ✅ **易于使用** - 简洁的 API 设计
 
 ## 🚀 安装
@@ -124,7 +123,42 @@ client = OpencodeClient(
 )
 ```
 
-### 第七步：下一步学习
+### 第七步：运行演示程序
+
+项目提供了两个演示程序，帮助您快速了解SDK的功能：
+
+**快速入门演示** - 适合第一次使用的用户
+```bash
+python quick_demo.py
+```
+这个演示展示了最常用的功能：
+- 创建客户端
+- 创建会话
+- 发送消息
+- 获取响应
+
+**完整功能演示** - 展示所有主要功能
+```bash
+python demo.py
+```
+这个演示包含：
+- 客户端初始化和配置
+- 会话管理（创建、列表、更新、删除）
+- 消息发送和响应处理
+- 文件操作（读取、列表、搜索）
+- 流式事件订阅
+- 配置和提供商管理
+
+**自定义服务器地址**
+```bash
+# 使用自定义服务器地址
+python demo.py --base-url http://your-server:8000
+
+# 指定项目目录
+python demo.py --directory /path/to/your/project
+```
+
+### 第八步：下一步学习
 
 - 📖 阅读 [QUICKSTART.md](QUICKSTART.md) 了解更多基础用法
 - 📖 查看 [API_REFERENCE.md](API_REFERENCE.md) 了解完整 API
@@ -224,6 +258,7 @@ asyncio.run(stream_chat())
 
 ### 核心文档
 - 📖 [README.md](README.md) - 项目概览
+- 📖 [DEMO.md](DEMO.md) - 演示程序使用指南
 - 📖 [QUICKSTART.md](QUICKSTART.md) - 快速开始指南
 - 📖 [API_REFERENCE.md](API_REFERENCE.md) - 完整 API 参考
 - 📖 [BEST_PRACTICES.md](BEST_PRACTICES.md) - 最佳实践
