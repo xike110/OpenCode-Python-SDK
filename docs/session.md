@@ -246,6 +246,11 @@ print(message.parts[0].text)
 **参数:**
 - `session_id` (str) - 会话 ID
 - `parts` (List[Dict[str, Any]]) - 消息部分列表，每个部分是一个字典
+- `agent` (Optional[str]) - 代理名称（如 "build"）
+- `model` (Optional[Dict[str, str]]) - 模型配置，包含：
+  - `modelID` (str) - 模型 ID（如 "gpt-5-nano", "claude-3-5-sonnet-20241022"）
+  - `providerID` (str) - 提供商 ID（如 "opencode", "anthropic", "openai"）
+- `variant` (Optional[str]) - 变体（如 "low", "medium", "high"）
 - `**kwargs` - 其他可选参数
 
 **返回值:**
@@ -258,6 +263,7 @@ print(message.parts[0].text)
 
 **示例:**
 ```python
+# 基本用法
 response = client.sessions.prompt(
     "session_123",
     parts=[{"type": "text", "text": "你好"}]
@@ -272,6 +278,30 @@ response = client.sessions.prompt(
         {"type": "file", "path": "main.py"}
     ]
 )
+
+# 使用指定模型和代理
+response = client.sessions.prompt(
+    "session_123",
+    parts=[{"type": "text", "text": "当前时间"}],
+    agent="build",
+    model={
+        "modelID": "gpt-5-nano",
+        "providerID": "opencode"
+    },
+    variant="low"
+)
+print(response.parts[0].text)
+
+# 使用 Claude 模型
+response = client.sessions.prompt(
+    "session_123",
+    parts=[{"type": "text", "text": "帮我写一个 Python 函数"}],
+    model={
+        "modelID": "claude-3-5-sonnet-20241022",
+        "providerID": "anthropic"
+    }
+)
+print(response.parts[0].text)
 ```
 
 ---
@@ -285,6 +315,11 @@ response = client.sessions.prompt(
 **参数:**
 - `session_id` (str) - 会话 ID
 - `parts` (List[Dict[str, Any]]) - 消息部分列表
+- `agent` (Optional[str]) - 代理名称（如 "build"）
+- `model` (Optional[Dict[str, str]]) - 模型配置，包含：
+  - `modelID` (str) - 模型 ID（如 "gpt-5-nano", "claude-3-5-sonnet-20241022"）
+  - `providerID` (str) - 提供商 ID（如 "opencode", "anthropic", "openai"）
+- `variant` (Optional[str]) - 变体（如 "low", "medium", "high"）
 - `**kwargs` - 其他可选参数
 
 **返回值:**
@@ -296,9 +331,36 @@ response = client.sessions.prompt(
 
 **示例:**
 ```python
+# 基本用法
 async for event in client.sessions.prompt_async(
     "session_123",
     parts=[{"type": "text", "text": "你好"}]
+):
+    if event.type == "text":
+        print(event.text, end="", flush=True)
+
+# 使用指定模型和代理
+async for event in client.sessions.prompt_async(
+    "session_123",
+    parts=[{"type": "text", "text": "当前时间"}],
+    agent="build",
+    model={
+        "modelID": "gpt-5-nano",
+        "providerID": "opencode"
+    },
+    variant="low"
+):
+    if event.type == "text":
+        print(event.text, end="", flush=True)
+
+# 使用 Claude 模型
+async for event in client.sessions.prompt_async(
+    "session_123",
+    parts=[{"type": "text", "text": "帮我写一个 Python 函数"}],
+    model={
+        "modelID": "claude-3-5-sonnet-20241022",
+        "providerID": "anthropic"
+    }
 ):
     if event.type == "text":
         print(event.text, end="", flush=True)
