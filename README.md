@@ -167,13 +167,6 @@ python demo.py --base-url http://your-server:8000
 python demo.py --directory /path/to/your/project
 ```
 
-### 第八步：下一步学习
-
-- 📖 阅读 [QUICKSTART.md](QUICKSTART.md) 了解更多基础用法
-- 📖 查看 [API_REFERENCE.md](API_REFERENCE.md) 了解完整 API
-- 📖 学习 [BEST_PRACTICES.md](BEST_PRACTICES.md) 了解最佳实践
-- 💡 查看 [examples](examples/) 目录中的更多示例
-
 ## 📖 快速开始
 
 ### 基本用法
