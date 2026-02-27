@@ -351,8 +351,6 @@ client = OpencodeClient(base_url="http://localhost:8000")
 session = client.sessions.create(title="重构代码")
 
 # 发送消息
-# 发送一条消息
-print("\n💬 发送消息...")
 response = client.sessions.prompt(
     session_id=session.id,
     parts=[{"type": "text", "text": "当前时间"}],
