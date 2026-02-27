@@ -133,6 +133,26 @@ class EventMessagePartRemoved(BaseModel):
     properties: EventMessagePartRemovedProperties = Field(..., description="事件属性")
 
 
+class EventMessagePartDeltaProperties(BaseModel):
+    """消息部分增量事件属性。"""
+
+    session_id: str = Field(..., alias="sessionID", description="会话 ID")
+    message_id: str = Field(..., alias="messageID", description="消息 ID")
+    part_id: str = Field(..., alias="partID", description="部分 ID")
+    field: str = Field(..., description="字段名称")
+    delta: str = Field(..., description="增量文本")
+
+    class Config:
+        populate_by_name = True
+
+
+class EventMessagePartDelta(BaseModel):
+    """消息部分增量事件（流式文本）。"""
+
+    type: Literal["message.part.delta"] = "message.part.delta"
+    properties: EventMessagePartDeltaProperties = Field(..., description="事件属性")
+
+
 # ============================================================================
 # 权限事件
 # ============================================================================
@@ -509,6 +529,7 @@ Event = Union[
     EventMessageRemoved,
     EventMessagePartUpdated,
     EventMessagePartRemoved,
+    EventMessagePartDelta,
     EventPermissionUpdated,
     EventPermissionReplied,
     EventSessionStatus,

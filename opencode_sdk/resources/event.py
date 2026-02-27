@@ -97,19 +97,20 @@ class EventResource(BaseResource):
         self,
         session_id: str,
         parts: Optional[list] = None,
+        directory: Optional[str] = None,
         **kwargs
     ) -> AsyncIterator[Event]:
         """
         订阅会话事件（发送消息并接收响应流）。
         
         正确的流程：
-        1. 先订阅 /event 端点（SSE 流）
-        2. 发送消息到 /session/{id}/prompt_async
-        3. 通过 /event 流接收响应
+        1. 发送消息到 /session/{id}/prompt_async（触发任务）
+        2. 订阅 /event 端点（SSE 流）接收响应
         
         Args:
             session_id: 会话 ID
             parts: 消息部分列表（如果提供，则发送消息）
+            directory: 工作目录路径
             **kwargs: 其他参数（如 model, agent 等）
             
         Yields:
@@ -119,6 +120,7 @@ class EventResource(BaseResource):
             >>> async for event in client.events.subscribe_session(
             ...     session_id="session_123",
             ...     parts=[{"type": "text", "text": "你好"}],
+            ...     directory="/data/workspace",
             ...     model={"modelID": "minimax-m2.1-free", "providerID": "opencode"},
             ...     agent="build"
             ... ):
@@ -129,9 +131,31 @@ class EventResource(BaseResource):
         if parts:
             # 构建请求数据
             data = {"parts": parts}
-            data.update(kwargs)
+            # 将 kwargs 中的参数添加到 data
+            for key in ['agent', 'model', 'variant']:
+                if key in kwargs:
+                    data[key] = kwargs[key]
             
-            # 先订阅事件流
+            # 构建 prompt_async 的查询参数
+            prompt_params = {}
+            if directory:
+                prompt_params['directory'] = directory
+            
+            # 先发送消息到 prompt_async 端点（触发任务）
+            prompt_url = f"/session/{session_id}/prompt_async"
+            
+            # 发送 POST 请求
+            self._http_client.post(
+                prompt_url,
+                json_data=data,
+                params=prompt_params
+            )
+            
+            # 然后订阅事件流
+            event_params = {}
+            if directory:
+                event_params['directory'] = directory
+            
             url = "/event"
             
             # 使用 SSE 客户端订阅事件
@@ -140,20 +164,8 @@ class EventResource(BaseResource):
                 headers=self._http_client.default_headers,
                 timeout=self._http_client.timeout
             ) as sse_client:
-                # 启动事件流连接
-                event_stream = sse_client.connect(url, method="GET")
-                
-                # 等待第一个事件（server.connected）
-                first_event = await event_stream.__anext__()
-                yield first_event
-                
-                # 发送消息到 prompt_async 端点
-                prompt_url = f"/session/{session_id}/prompt_async"
-                response = self._http_client.post(prompt_url, json_data=data)
-                # 204 响应表示消息已接受
-                
-                # 继续接收事件流
-                async for event in event_stream:
+                # 启动事件流连接（GET 请求，带 directory 参数）
+                async for event in sse_client.connect(url, params=event_params, method="GET"):
                     yield event
                     
                     # 如果收到 session.idle 事件，表示会话完成
@@ -166,3 +178,4 @@ class EventResource(BaseResource):
             # 只订阅事件，不发送消息
             async for event in self.subscribe(session_id=session_id, **kwargs):
                 yield event
+

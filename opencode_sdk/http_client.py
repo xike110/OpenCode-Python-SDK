@@ -79,12 +79,19 @@ class HttpClient:
                     response_body=response.text,
                 )
 
+            # 204 No Content - 返回 None
+            if response.status_code == 204:
+                return None
+
             # 解析 JSON 响应
             content_type = response.headers.get("content-type", "")
             if content_type.startswith("application/json"):
                 return response.json()
             else:
                 text = response.text
+                # 如果响应为空，返回 None
+                if not text or text.strip() == "":
+                    return None
                 try:
                     return json.loads(text)
                 except json.JSONDecodeError:

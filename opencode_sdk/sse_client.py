@@ -87,13 +87,15 @@ class SSEClient:
         try:
             # 根据方法类型构建请求
             request_kwargs = {
-                "headers": {"Accept": "text/event-stream"}
+                "headers": {"Accept": "text/event-stream"},
+                "timeout": None  # SSE 连接不应该有超时
             }
             
             if method.upper() == "POST":
                 request_kwargs["json"] = json_data
             else:
                 request_kwargs["params"] = params
+            
             
             async with self._client.stream(
                 method,
@@ -145,8 +147,8 @@ class SSEClient:
             
             # 空行表示事件结束
             if not line:
-                if event_type and event_data:
-                    # 解析并生成事件
+                if event_data:
+                    # 解析并生成事件（event_type 可能为 None，从 data 中获取）
                     event = self._parse_event(event_type, event_data)
                     if event:
                         yield event
@@ -167,12 +169,12 @@ class SSEClient:
                     event_data = data
             # 忽略其他字段（id, retry 等）
     
-    def _parse_event(self, event_type: str, event_data: str) -> Optional[Event]:
+    def _parse_event(self, event_type: Optional[str], event_data: str) -> Optional[Event]:
         """
         解析单个事件。
         
         Args:
-            event_type: 事件类型
+            event_type: 事件类型（可能为 None，从 data 中获取）
             event_data: 事件数据（JSON 字符串）
             
         Returns:
@@ -182,18 +184,104 @@ class SSEClient:
             # 解析 JSON 数据
             data = json.loads(event_data)
             
-            # 添加事件类型
-            if isinstance(data, dict):
-                data["type"] = event_type
-                return Event(**data)
+            # 如果 data 不是字典，返回 None
+            if not isinstance(data, dict):
+                return None
             
-            return None
+            # 获取事件类型
+            if event_type is None:
+                event_type = data.get("type")
+            
+            if not event_type:
+                return None
+            
+            # 根据事件类型导入对应的类
+            from .models.events import (
+                EventServerConnected,
+                EventServerInstanceDisposed,
+                EventSessionStatus,
+                EventSessionIdle,
+                EventSessionCreated,
+                EventSessionUpdated,
+                EventSessionDeleted,
+                EventSessionDiff,
+                EventSessionError,
+                EventSessionCompacted,
+                EventMessageUpdated,
+                EventMessageRemoved,
+                EventMessagePartUpdated,
+                EventMessagePartRemoved,
+                EventMessagePartDelta,
+                EventPermissionUpdated,
+                EventPermissionReplied,
+                EventFileEdited,
+                EventFileWatcherUpdated,
+                EventVcsBranchUpdated,
+                EventTodoUpdated,
+                EventCommandExecuted,
+                EventTuiPromptAppend,
+                EventTuiCommandExecute,
+                EventTuiToastShow,
+                EventPtyCreated,
+                EventPtyUpdated,
+                EventPtyExited,
+                EventPtyDeleted,
+                EventInstallationUpdated,
+                EventInstallationUpdateAvailable,
+                EventLspClientDiagnostics,
+                EventLspUpdated,
+            )
+            
+            # 事件类型映射
+            event_class_map = {
+                "server.connected": EventServerConnected,
+                "server.instance.disposed": EventServerInstanceDisposed,
+                "session.status": EventSessionStatus,
+                "session.idle": EventSessionIdle,
+                "session.created": EventSessionCreated,
+                "session.updated": EventSessionUpdated,
+                "session.deleted": EventSessionDeleted,
+                "session.diff": EventSessionDiff,
+                "session.error": EventSessionError,
+                "session.compacted": EventSessionCompacted,
+                "message.updated": EventMessageUpdated,
+                "message.removed": EventMessageRemoved,
+                "message.part.updated": EventMessagePartUpdated,
+                "message.part.removed": EventMessagePartRemoved,
+                "message.part.delta": EventMessagePartDelta,
+                "permission.updated": EventPermissionUpdated,
+                "permission.replied": EventPermissionReplied,
+                "file.edited": EventFileEdited,
+                "file.watcher.updated": EventFileWatcherUpdated,
+                "vcs.branch.updated": EventVcsBranchUpdated,
+                "todo.updated": EventTodoUpdated,
+                "command.executed": EventCommandExecuted,
+                "tui.prompt.append": EventTuiPromptAppend,
+                "tui.command.execute": EventTuiCommandExecute,
+                "tui.toast.show": EventTuiToastShow,
+                "pty.created": EventPtyCreated,
+                "pty.updated": EventPtyUpdated,
+                "pty.exited": EventPtyExited,
+                "pty.deleted": EventPtyDeleted,
+                "installation.updated": EventInstallationUpdated,
+                "installation.update-available": EventInstallationUpdateAvailable,
+                "lsp.client.diagnostics": EventLspClientDiagnostics,
+                "lsp.updated": EventLspUpdated,
+            }
+            
+            # 获取对应的事件类
+            event_class = event_class_map.get(event_type)
+            if event_class:
+                return event_class(**data)
+            else:
+                # 未知事件类型，静默忽略
+                return None
             
         except json.JSONDecodeError:
-            # JSON 解析失败，忽略该事件
+            # JSON 解析失败，静默忽略
             return None
         except Exception:
-            # 其他错误，忽略该事件
+            # 其他错误，静默忽略
             return None
 
 
