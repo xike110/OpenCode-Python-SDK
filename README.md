@@ -60,143 +60,57 @@ python -c "from opencode_sdk import OpencodeClient; print('✅ SDK 安装成功�
 ```python
 from opencode_sdk import OpencodeClient
 
-# 初始化客户端
+# 初始化客户端 - 使用 /api 前缀
 client = OpencodeClient(
-    base_url="http://localhost:8000",  # OpenCode 服务器地址
-    directory="/path/to/your/project"   # 你的项目路径
+    base_url="http://192.168.77.28:8001",
+    directory="/data/seo/workspace"
 )
 
 # 创建一个新会话
 print("📝 创建会话...")
-session = client.sessions.create(title="我的第一个任务")
+session = client.sessions.create(title="测试会话")
 print(f"✅ 会话已创建，ID: {session.id}")
 
 # 发送一条消息
 print("\n💬 发送消息...")
 response = client.sessions.prompt(
     session_id=session.id,
-    parts=[{
-        "type": "text",
-        "text": "请帮我写一个 Python 函数来计算阶乘"
-    }]
+    parts=[{"type": "text", "text": "当前时间"}],
+    agent="build",
+    model={
+        "modelID": "gpt-5-nano",
+        "providerID": "opencode"
+    },
+    variant="low"
 )
-print(f"✅ 收到响应: {response}")
+
+print(f"✅ 收到响应!")
+print(f"消息ID: {response.id}")
+print(f"角色: {response.role}")
+print(f"时间: {response.time}")
+print(f"模型: {response.model_id} ({response.provider_id})")
+print(f"令牌: 输入={response.tokens.input}, 输出={response.tokens.output}, 推理={response.tokens.reasoning}")
+print(f"部分 ({len(response.parts)}):")
+for i, part in enumerate(response.parts):
+    print(f"  [{i}] 类型: {part.type}")
+    if hasattr(part, 'text') and part.text:
+        text_preview = part.text[:100] + "..." if len(part.text) > 100 else part.text
+        print(f"      文本: {text_preview}")
+    if hasattr(part, 'reason'):
+        print(f"      原因: {part.reason}")
+    print(f"      ID: {part.id}")
+print()
+
 
 # 列出所有会话
 print("\n📋 列出所有会话...")
 sessions = client.sessions.list()
 print(f"✅ 共有 {len(sessions)} 个会话")
-for s in sessions:
+for s in sessions[:5]:  # 只显示前5个
     print(f"  - {s.title} (ID: {s.id})")
+
 ```
 
-### 第五步：运行脚本
-
-```bash
-# 确保 OpenCode 服务器正在运行
-# 然后执行脚本
-python hello_opencode.py
-```
-
-### 第六步：常见问题排查
-
-**问题 1：连接被拒绝**
-```
-ConnectionError: Failed to connect to http://localhost:8000
-```
-解决方案：确保 OpenCode 服务器已启动
-```bash
-# 检查服务器是否运行
-curl http://localhost:8000/api/health
-```
-
-**问题 2：导入错误**
-```
-ModuleNotFoundError: No module named 'opencode_sdk'
-```
-解决方案：重新安装 SDK
-```bash
-pip install --upgrade opencode-sdk
-```
-
-**问题 3：认证失败**
-```
-AuthenticationError: Invalid credentials
-```
-解决方案：检查 API 密钥配置
-```python
-client = OpencodeClient(
-    base_url="http://localhost:8000",
-    api_key="your_api_key"  # 添加 API 密钥
-)
-```
-
-### 第七步：运行演示程序
-
-项目提供了两个演示程序，帮助您快速了解SDK的功能：
-
-**快速入门演示** - 适合第一次使用的用户
-```bash
-python quick_demo.py
-```
-这个演示展示了最常用的功能：
-- 创建客户端
-- 创建会话
-- 发送消息
-- 获取响应
-
-**完整功能演示** - 展示所有主要功能
-```bash
-python demo.py
-```
-这个演示包含：
-- 客户端初始化和配置
-- 会话管理（创建、列表、更新、删除）
-- 消息发送和响应处理
-- 文件操作（读取、列表、搜索）
-- 流式事件订阅
-- 配置和提供商管理
-
-**自定义服务器地址**
-```bash
-# 使用自定义服务器地址
-python demo.py --base-url http://your-server:8000
-
-# 指定项目目录
-python demo.py --directory /path/to/your/project
-```
-
-## 📖 快速开始
-
-### 基本用法
-
-```python
-from opencode_sdk import OpencodeClient
-
-# 创建客户端
-client = OpencodeClient(
-    base_url="http://localhost:8000",
-    directory="/path/to/your/project"
-)
-
-# 创建会话
-session = client.sessions.create(title="我的任务")
-
-# 列出所有会话
-sessions = client.sessions.list()
-
-# 获取会话详情
-session_detail = client.sessions.get(session.id)
-
-# 更新会话
-updated_session = client.sessions.update(
-    session_id=session.id,
-    title="新标题"
-)
-
-# 删除会话
-client.sessions.delete(session.id)
-```
 
 ### 流式消息（推荐）
 
@@ -326,129 +240,7 @@ asyncio.run(stream_chat())
 - **App（应用）**: 应用管理（3 个方法）
 - **Command（命令）**: 命令管理（1 个方法）
 
-## 🛠️ 开发
 
-```bash
-# 克隆仓库
-git clone https://github.com/xike110/OpenCode-Python-SDK.git
-cd OpenCode-Python-SDK
-
-# 安装依赖
-pip install -r requirements.txt
-
-# 运行测试
-pytest
-
-# 格式化代码
-black .
-isort .
-
-# 类型检查
-mypy opencode_sdk
-```
-
-## 📝 使用示例
-
-### 快速体验演示程序
-
-想要快速体验 SDK 的功能？运行演示程序：
-
-```bash
-# 快速入门演示（推荐新手）
-python quick_demo.py
-
-# 完整功能演示
-python demo.py
-
-# 使用自定义配置
-python demo.py --base-url http://your-server:8000 --directory /path/to/project
-```
-
-📖 **详细说明**: [DEMO.md](DEMO.md) - 演示程序使用指南
-
-### 创建和使用会话
-
-```python
-from opencode_sdk import OpencodeClient
-
-client = OpencodeClient(base_url="http://localhost:8000")
-
-# 创建会话
-session = client.sessions.create(title="重构代码")
-
-# 发送消息
-response = client.sessions.prompt(
-    session_id=session.id,
-    parts=[{"type": "text", "text": "当前时间"}],
-    agent="build",
-    model={
-        "modelID": "gpt-5-nano",
-        "providerID": "opencode"
-    },
-    variant="low"
-)
-
-print(f"✅ 收到响应!")
-print(f"消息ID: {response.id}")
-print(f"角色: {response.role}")
-print(f"时间: {response.time}")
-print(f"模型: {response.model_id} ({response.provider_id})")
-print(f"令牌: 输入={response.tokens.input}, 输出={response.tokens.output}, 推理={response.tokens.reasoning}")
-print(f"部分 ({len(response.parts)}):")
-for i, part in enumerate(response.parts):
-    print(f"  [{i}] 类型: {part.type}")
-    if hasattr(part, 'text') and part.text:
-        text_preview = part.text[:100] + "..." if len(part.text) > 100 else part.text
-        print(f"      文本: {text_preview}")
-    if hasattr(part, 'reason'):
-        print(f"      原因: {part.reason}")
-    print(f"      ID: {part.id}")
-print()
-
-# 获取会话消息
-messages = client.sessions.messages(session_id=session.id)
-```
-
-### 订阅事件
-
-```python
-# 订阅所有事件
-for event in client.events.subscribe():
-    print(f"事件: {event.type}")
-    
-    if event.type == "message.part.updated":
-        part = event.properties.part
-        if part.type == "text":
-            print(f"文本: {part.text}")
-```
-
-### 文件操作
-
-```python
-# 列出文件
-files = client.files.list(path="src")
-
-# 读取文件
-content = client.files.read(path="src/main.py")
-
-# 搜索文本
-results = client.find.text(query="function")
-```
-
-### 提供商管理
-
-```python
-# 列出提供商
-providers = client.providers.list()
-
-# 获取配置
-config = client.config.get()
-
-# 更新配置
-client.config.update({
-    "model": "anthropic/claude-3-5-sonnet-20241022"
-})
-```
 
 
 ## 📄 许可证
