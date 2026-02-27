@@ -188,6 +188,10 @@ class SSEClient:
             if not isinstance(data, dict):
                 return None
             
+            # 检查是否有 payload 字段（服务器可能将事件包装在 payload 中）
+            if "payload" in data and isinstance(data["payload"], dict):
+                data = data["payload"]
+            
             # 获取事件类型
             if event_type is None:
                 event_type = data.get("type")

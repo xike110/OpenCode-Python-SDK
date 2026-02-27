@@ -1,164 +1,81 @@
-"""
-只监听事件流的测试
-
-这个脚本只订阅 /event 端点，监听所有事件，不发送任何消息。
-适用于：
-1. 监控系统事件
-2. 调试事件流
-3. 观察其他会话的活动
-"""
-
+# 订阅全局事件
 import asyncio
-import httpx
-import json
+import sys
 from datetime import datetime
+from opencode_sdk import OpencodeClient
 
-async def listen_events_only():
-    """只监听事件流"""
-    base_url = "http://192.168.77.28:8001"
-    
-    print("OpenCode 事件监听器")
-    print("=" * 60)
-    print("开始监听所有事件...")
-    print("按 Ctrl+C 停止监听")
-    print("=" * 60)
-    print()
-    
-    async with httpx.AsyncClient(base_url=base_url, timeout=None) as client:
-        try:
-            async with client.stream(
-                "GET",
-                "/event",
-                headers={"Accept": "text/event-stream"}
-            ) as response:
-                print(f"✅ 已连接到事件流 (状态码: {response.status_code})")
-                print(f"⏰ 开始时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-                print("-" * 60)
-                print()
-                
-                event_count = 0
-                
-                async for line in response.aiter_lines():
-                    if not line.strip():
-                        continue
-                    
-                    event_count += 1
-                    timestamp = datetime.now().strftime('%H:%M:%S')
-                    
-                    # 解析事件
-                    if line.startswith("event:"):
-                        event_type = line[6:].strip()
-                        print(f"[{timestamp}] 事件类型: {event_type}")
-                    
-                    elif line.startswith("data:"):
-                        data_str = line[5:].strip()
-                        try:
-                            data = json.loads(data_str)
-                            event_type = data.get("type", "unknown")
-                            # print(data)
-                            # 根据事件类型显示不同的信息
-                            if event_type == "server.connected":
-                                print(f"[{timestamp}] 🔌 服务器已连接")
-                            
-                            # elif event_type == "session.created":
-                            #     session_id = data.get("properties", {}).get("info", {}).get("id")
-                            #     title = data.get("properties", {}).get("info", {}).get("title")
-                            #     print(f"[{timestamp}] 📝 会话已创建: {title} ({session_id})")
-                            
-                            # elif event_type == "session.updated":
-                            #     session_id = data.get("properties", {}).get("info", {}).get("id")
-                            #     print(f"[{timestamp}] 🔄 会话已更新: {session_id}")
-                            
-                            # elif event_type == "session.deleted":
-                            #     session_id = data.get("properties", {}).get("info", {}).get("id")
-                            #     print(f"[{timestamp}] 🗑️  会话已删除: {session_id}")
-                            
-                            # elif event_type == "session.status":
-                            #     session_id = data.get("properties", {}).get("sessionID")
-                            #     status = data.get("properties", {}).get("status", {}).get("type")
-                            #     print(f"[{timestamp}] 📊 会话状态: {session_id} -> {status}")
-                            
-                            # elif event_type == "session.idle":
-                            #     session_id = data.get("properties", {}).get("sessionID")
-                            #     print(f"[{timestamp}] 💤 会话空闲: {session_id}")
-                            
-                            # elif event_type == "message.created":
-                            #     msg_id = data.get("properties", {}).get("info", {}).get("id")
-                            #     role = data.get("properties", {}).get("info", {}).get("role")
-                            #     print(f"[{timestamp}] 💬 消息已创建: {role} ({msg_id})")
-                            
-                            # elif event_type == "message.updated":
-                            #     msg_id = data.get("properties", {}).get("info", {}).get("id")
-                            #     print(f"[{timestamp}] 🔄 消息已更新: {msg_id}")
-                            
-                            elif event_type == "message.part.updated":
-                                part = data.get("properties", {}).get("part", {})
-                                part_type = part.get("type")
-                                part_id = part.get("id")
-                                
-                                if part_type == "text":
-                                    text = part.get("text", "")
-                                    text_preview = text
-                                    print(f"[{timestamp}] 📝 文本内容: {text_preview}")
-                                elif part_type == "tool":
-                                    tool_name = part.get("tool")
-                                    state = part.get("state", {}).get("status")
-                                    print(f"[{timestamp}] 🔧 工具调用: {tool_name} ({state})")
-                                elif part_type == "reasoning":
-                                    reasoning = part.get("text", "")
-                                    reasoning_preview = reasoning[:50] + "..." if len(reasoning) > 50 else reasoning
-                                    print(f"[{timestamp}] 🤔 推理过程: {reasoning_preview}")
-                                else:
-                                    print(f"[{timestamp}] 📦 消息部分: {part_type} ({part_id})")
-                            
-                            # elif event_type == "message.completed":
-                            #     msg_id = data.get("properties", {}).get("info", {}).get("id")
-                            #     print(f"[{timestamp}] ✅ 消息完成: {msg_id}")
-                            
-                            # else:
-                            #     # 其他事件类型
-                            #     print(f"[{timestamp}] 📌 事件: {event_type}")
-                            
-                            # 显示原始数据（可选，用于调试）
-                            # print(f"    数据: {json.dumps(data, ensure_ascii=False)[:100]}...")
-                        
-                        except json.JSONDecodeError:
-                            print(f"[{timestamp}] ⚠️  无法解析 JSON: {data_str[:100]}...")
-                    
-                    else:
-                        # 其他行
-                        print(f"[{timestamp}] {line}")
-                    
-                    print()  # 空行分隔
-                    
-                    # 每100个事件显示一次统计
-                    if event_count % 100 == 0:
-                        print(f"📊 已接收 {event_count} 个事件")
-                        print()
-        
-        except KeyboardInterrupt:
-            print()
-            print("-" * 60)
-            print(f"⏹️  监听已停止")
-            print(f"⏰ 结束时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-            print(f"📊 总共接收 {event_count} 个事件")
-            print("=" * 60)
-        
-        except Exception as e:
-            print()
-            print("-" * 60)
-            print(f"❌ 错误: {type(e).__name__}: {str(e)}")
-            import traceback
-            traceback.print_exc()
 
 async def main():
+    # 创建客户端实例
+    client = OpencodeClient(base_url="http://192.168.77.28:8001", directory="/data/seo/workspace")
+
+    print(f"[{datetime.now().strftime('%H:%M:%S')}] 开始订阅全局事件...")
+    print(f"[{datetime.now().strftime('%H:%M:%S')}] 连接到: http://192.168.77.28:8001/global/event")
+    print(f"[{datetime.now().strftime('%H:%M:%S')}] 等待事件中... (按 Ctrl+C 退出)")
+    print("-" * 60)
+
+    event_count = 0
+    
     try:
-        await listen_events_only()
+        # 订阅全局事件
+        async for event in client.events.subscribe_global():
+            event_count += 1
+            timestamp = datetime.now().strftime('%H:%M:%S')
+            
+            print(f"\n[{timestamp}] 事件 #{event_count}: {event.type}")
+            
+            # 打印事件的所有属性（用于调试）
+            if hasattr(event, '__dict__'):
+                for key, value in event.__dict__.items():
+                    if key != 'type' and value is not None:
+                        print(f"  {key}: {value}")
+
+            # 处理不同类型的事件
+            if event.type == "server.connected":
+                print(f"  ✓ 服务器已连接")
+            elif event.type == "session.created":
+                if hasattr(event, 'properties') and hasattr(event.properties, 'info'):
+                    info = event.properties.info
+                    session_id = info.get('id', 'N/A') if isinstance(info, dict) else getattr(info, 'id', 'N/A')
+                    title = info.get('title', 'N/A') if isinstance(info, dict) else getattr(info, 'title', 'N/A')
+                    print(f"  → 新会话创建: {title} (ID: {session_id})")
+                else:
+                    print(f"  → 新会话创建")
+            elif event.type == "session.updated":
+                print(f"  → 会话更新")
+            elif event.type == "session.deleted":
+                print(f"  → 会话删除")
+            elif event.type == "session.idle":
+                print(f"  → 会话空闲")
+            elif event.type == "message.part.delta":
+                if hasattr(event, 'properties'):
+                    props = event.properties
+                    delta = getattr(props, 'delta', '')
+                    field = getattr(props, 'field', 'unknown')
+                    print(f"  → 消息增量 [{field}]: {delta}")
+                else:
+                    print(f"  → 消息增量")
+            elif event.type.startswith("message."):
+                print(f"  → 消息事件")
+            elif event.type.startswith("file."):
+                print(f"  → 文件事件")
+            
+            sys.stdout.flush()
+
     except KeyboardInterrupt:
-        print("\n👋 再见！")
+        print(f"\n\n[{datetime.now().strftime('%H:%M:%S')}] 用户中断，共接收 {event_count} 个事件")
+    except ConnectionError as e:
+        print(f"\n连接失败: {e}")
+        print("请检查:")
+        print("  1. 服务器是否运行在 http://192.168.77.28:8001")
+        print("  2. 网络连接是否正常")
+    except TimeoutError as e:
+        print(f"\n连接超时: {e}")
+    except Exception as e:
+        print(f"\n发生错误: {type(e).__name__}: {e}")
+        import traceback
+        traceback.print_exc()
+
 
 if __name__ == "__main__":
-    try:
-        asyncio.run(main())
-    except KeyboardInterrupt:
-        print("\n👋 再见！")
+    asyncio.run(main())

@@ -164,11 +164,11 @@ async def stream_chat():
 asyncio.run(stream_chat())
 ```
 
-### 订阅方式
+### 事件订阅方式
 
 SDK 提供三种事件订阅方式，均返回异步迭代器：
 
-#### 1. subscribe_session - 订阅会话事件
+#### 1. subscribe_session - 订阅会话事件（推荐用于对话）
 
 订阅特定会话的事件流，可发送消息并接收实时响应：
 
@@ -176,34 +176,63 @@ SDK 提供三种事件订阅方式，均返回异步迭代器：
 async for event in client.events.subscribe_session(
     session_id="session_id",
     parts=[{"type": "text", "text": "消息内容"}],
+    directory="/data/seo/workspace",
     agent="build",
     model={"modelID": "gpt-5-nano", "providerID": "opencode"},
     variant="low"
 ):
     if event.type == "message.part.delta":
+        # 实时打印 AI 生成的文本
         print(event.properties.delta, end="", flush=True)
+    elif event.type == "session.idle":
+        # 会话完成
+        break
 ```
 
 **参数说明：**
-- `session_id` (str) - 会话 ID
-- `parts` (list) - 消息部分列表，每部分包含 `type` 和内容
-- `agent` (str) - 代理名称（如 "build"）
-- `model` (dict) - 模型配置，包含 `modelID` 和 `providerID`
-- `variant` (str) - 变体级别（"low"/"medium"/"high"）
+- `session_id` (str, 必需) - 会话 ID
+- `parts` (list, 必需) - 消息部分列表，每部分包含 `type` 和内容
+- `directory` (str, 可选) - 工作目录路径
+- `agent` (str, 可选) - 代理名称（如 "build"）
+- `model` (dict, 可选) - 模型配置，包含 `modelID` 和 `providerID`
+- `variant` (str, 可选) - 变体级别（"low"/"medium"/"high"）
 
-#### 2. subscribe_global - 订阅全局事件
+**返回值：** `AsyncIterator[Event]`
 
-订阅服务器全局事件：
+#### 2. subscribe_global - 订阅全局事件（推荐用于监控）
+
+订阅服务器全局事件，监控所有会话的活动：
 
 ```python
 async for event in client.events.subscribe_global():
-    if event.payload.type == "session.created":
-        print(f"新会话创建: {event.payload.properties.info}")
+    print(f"全局事件: {event.type}")
+    
+    if event.type == "session.created":
+        # 访问会话信息
+        info = event.properties.info
+        print(f"新会话: {info.get('title')} (ID: {info.get('id')})")
+    elif event.type == "message.part.delta":
+        # 消息增量
+        print(f"消息: {event.properties.delta}")
 ```
+
+**事件数据结构：**
+服务器返回的事件格式为：
+```json
+{
+  "directory": "/data/seo/workspace",
+  "payload": {
+    "type": "session.created",
+    "properties": {...}
+  }
+}
+```
+
+SDK 会自动解包 `payload` 字段，你可以直接访问 `event.type` 和 `event.properties`。
 
 **返回值：** `AsyncIterator[GlobalEvent]`
 
-#### 3. subscribe - 通用订阅
+#### 3. subscribe - 通用订阅（底层方法）
 
 订阅事件流（可选指定会话 ID）：
 
