@@ -14,13 +14,14 @@ async def stream_chat():
     )
     
     print(f"会话已创建: {session.id}\n")
+    question = "当前什么时间？"
+    print(f"问题：{question}")
     print("AI 响应:\n")
-    
     # 发送消息并接收流式响应
     try:
         async for event in client.events.subscribe_session(
             session_id=session.id,
-            parts=[{"type": "text", "text": "当前时间"}],
+            parts=[{"type": "text", "text": question}],
             directory="/data/seo/workspace",
             agent="build",
             model={
