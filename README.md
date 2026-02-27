@@ -162,8 +162,73 @@ async def stream_chat():
 
 # 运行
 asyncio.run(stream_chat())
-
 ```
+
+### 订阅方式
+
+SDK 提供三种事件订阅方式，均返回异步迭代器：
+
+#### 1. subscribe_session - 订阅会话事件
+
+订阅特定会话的事件流，可发送消息并接收实时响应：
+
+```python
+async for event in client.events.subscribe_session(
+    session_id="session_id",
+    parts=[{"type": "text", "text": "消息内容"}],
+    agent="build",
+    model={"modelID": "gpt-5-nano", "providerID": "opencode"},
+    variant="low"
+):
+    if event.type == "message.part.delta":
+        print(event.properties.delta, end="", flush=True)
+```
+
+**参数说明：**
+- `session_id` (str) - 会话 ID
+- `parts` (list) - 消息部分列表，每部分包含 `type` 和内容
+- `agent` (str) - 代理名称（如 "build"）
+- `model` (dict) - 模型配置，包含 `modelID` 和 `providerID`
+- `variant` (str) - 变体级别（"low"/"medium"/"high"）
+
+#### 2. subscribe_global - 订阅全局事件
+
+订阅服务器全局事件：
+
+```python
+async for event in client.events.subscribe_global():
+    if event.payload.type == "session.created":
+        print(f"新会话创建: {event.payload.properties.info}")
+```
+
+**返回值：** `AsyncIterator[GlobalEvent]`
+
+#### 3. subscribe - 通用订阅
+
+订阅事件流（可选指定会话 ID）：
+
+```python
+# 订阅全局事件
+async for event in client.events.subscribe():
+    print(f"事件: {event.type}")
+
+# 订阅特定会话事件
+async for event in client.events.subscribe(session_id="session_id"):
+    print(f"会话事件: {event.type}")
+```
+
+**返回值：** `AsyncIterator[Event]`
+
+### 常用事件类型
+
+| 事件类型 | 说明 | 属性访问 |
+|---------|------|---------|
+| `message.part.delta` | 流式文本增量 | `event.properties.delta` |
+| `message.part.updated` | 消息部分更新 | `event.properties.part` |
+| `session.status` | 会话状态变化 | `event.properties.status` |
+| `session.created` | 会话已创建 | `event.properties.info` |
+| `session.error` | 会话错误 | `event.properties.error` |
+| `file.edited` | 文件已编辑 | `event.properties.file` |
 
 ## 🔧 功能特性
 
