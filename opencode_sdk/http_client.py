@@ -80,10 +80,15 @@ class HttpClient:
                 )
 
             # 解析 JSON 响应
-            if response.headers.get("content-type", "").startswith("application/json"):
+            content_type = response.headers.get("content-type", "")
+            if content_type.startswith("application/json"):
                 return response.json()
             else:
-                return response.text
+                text = response.text
+                try:
+                    return json.loads(text)
+                except json.JSONDecodeError:
+                    return text
 
         except httpx.TimeoutException as e:
             raise TimeoutError(f"请求超时: {str(e)}")

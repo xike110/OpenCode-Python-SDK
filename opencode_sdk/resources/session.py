@@ -223,7 +223,19 @@ class SessionResource(BaseResource):
             params['offset'] = offset
             
         response = self._http_client.get(f'/session/{session_id}/message', params=params)
-        return [Message(**item) for item in response]
+        
+        from ..models.message import UserMessage, AssistantMessage
+        
+        messages = []
+        for item in response:
+            role = item.get('role')
+            if role == 'user':
+                messages.append(UserMessage(**item))
+            elif role == 'assistant':
+                messages.append(AssistantMessage(**item))
+            else:
+                messages.append(Message(**item))
+        return messages
     
     def message(self, session_id: str, message_id: str) -> Message:
         """
@@ -244,7 +256,16 @@ class SessionResource(BaseResource):
             >>> print(message.parts[0].text)
         """
         response = self._http_client.get(f'/session/{session_id}/message/{message_id}')
-        return Message(**response)
+        
+        from ..models.message import UserMessage, AssistantMessage
+        
+        role = response.get('role')
+        if role == 'user':
+            return UserMessage(**response)
+        elif role == 'assistant':
+            return AssistantMessage(**response)
+        else:
+            return Message(**response)
     
     # ==================== 交互操作 ====================
     
@@ -282,8 +303,22 @@ class SessionResource(BaseResource):
         data = {'parts': parts}
         data.update(kwargs)
         
-        response = self._http_client.post(f'/session/{session_id}/prompt', json_data=data)
-        return Message(**response)
+        response = self._http_client.post(f'/session/{session_id}/message', json_data=data)
+        
+        if isinstance(response, dict) and 'info' in response and 'parts' in response:
+            message_data = {**response['info'], 'parts': response['parts']}
+        else:
+            message_data = response
+        
+        from ..models.message import UserMessage, AssistantMessage
+        
+        role = message_data.get('role')
+        if role == 'user':
+            return UserMessage(**message_data)
+        elif role == 'assistant':
+            return AssistantMessage(**message_data)
+        else:
+            return Message(**message_data)
     
     async def prompt_async(
         self,
@@ -360,7 +395,16 @@ class SessionResource(BaseResource):
             data['args'] = args
             
         response = self._http_client.post(f'/session/{session_id}/command', json_data=data)
-        return Message(**response)
+        
+        from ..models.message import UserMessage, AssistantMessage
+        
+        role = response.get('role')
+        if role == 'user':
+            return UserMessage(**response)
+        elif role == 'assistant':
+            return AssistantMessage(**response)
+        else:
+            return Message(**response)
     
     def shell(self, session_id: str, command: str) -> Message:
         """
@@ -386,7 +430,16 @@ class SessionResource(BaseResource):
         """
         data = {'command': command}
         response = self._http_client.post(f'/session/{session_id}/shell', json_data=data)
-        return Message(**response)
+        
+        from ..models.message import UserMessage, AssistantMessage
+        
+        role = response.get('role')
+        if role == 'user':
+            return UserMessage(**response)
+        elif role == 'assistant':
+            return AssistantMessage(**response)
+        else:
+            return Message(**response)
     
     def abort(self, session_id: str) -> None:
         """

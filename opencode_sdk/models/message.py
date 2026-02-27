@@ -49,6 +49,7 @@ class UserMessage(BaseModel):
     model: MessageModel = Field(..., description="模型信息")
     system: Optional[str] = Field(None, description="系统提示")
     tools: Optional[Dict[str, bool]] = Field(None, description="工具可用性")
+    parts: List["Part"] = Field(default_factory=list, description="消息部分列表")
 
     class Config:
         populate_by_name = True
@@ -94,6 +95,7 @@ class AssistantMessage(BaseModel):
     cost: float = Field(..., description="成本")
     tokens: MessageTokens = Field(..., description="令牌使用情况")
     finish: Optional[str] = Field(None, description="完成原因")
+    parts: List["Part"] = Field(default_factory=list, description="消息部分列表")
 
     class Config:
         populate_by_name = True
@@ -393,3 +395,5 @@ Part = Union[
 
 # 更新前向引用
 ToolStateCompleted.model_rebuild()
+UserMessage.model_rebuild()
+AssistantMessage.model_rebuild()

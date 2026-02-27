@@ -351,10 +351,35 @@ client = OpencodeClient(base_url="http://localhost:8000")
 session = client.sessions.create(title="重构代码")
 
 # 发送消息
+# 发送一条消息
+print("\n💬 发送消息...")
 response = client.sessions.prompt(
     session_id=session.id,
-    parts=[{"type": "text", "text": "重构这个函数"}]
+    parts=[{"type": "text", "text": "当前时间"}],
+    agent="build",
+    model={
+        "modelID": "gpt-5-nano",
+        "providerID": "opencode"
+    },
+    variant="low"
 )
+
+print(f"✅ 收到响应!")
+print(f"消息ID: {response.id}")
+print(f"角色: {response.role}")
+print(f"时间: {response.time}")
+print(f"模型: {response.model_id} ({response.provider_id})")
+print(f"令牌: 输入={response.tokens.input}, 输出={response.tokens.output}, 推理={response.tokens.reasoning}")
+print(f"部分 ({len(response.parts)}):")
+for i, part in enumerate(response.parts):
+    print(f"  [{i}] 类型: {part.type}")
+    if hasattr(part, 'text') and part.text:
+        text_preview = part.text[:100] + "..." if len(part.text) > 100 else part.text
+        print(f"      文本: {text_preview}")
+    if hasattr(part, 'reason'):
+        print(f"      原因: {part.reason}")
+    print(f"      ID: {part.id}")
+print()
 
 # 获取会话消息
 messages = client.sessions.messages(session_id=session.id)
