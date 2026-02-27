@@ -53,7 +53,7 @@ pip --version
 python -c "from opencode_sdk import OpencodeClient; print('✅ SDK 安装成功！')"
 ```
 
-### 第四步：创建第一个脚本
+### 同步发行消息
 
 创建文件 `hello_opencode.py`：
 
